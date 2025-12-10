@@ -5,4 +5,12 @@ from chromadb.config import Settings
 #PERSIST_DIRECTORY = os.environ.get('PERSIST_DIRECTORY', 'db')
 
 # Define the Chroma settings
-CHROMA_SETTINGS = chromadb.HttpClient(host="host.docker.internal", port=8000, settings=Settings(allow_reset=True, anonymized_telemetry=False))
+# Use 'chroma' as host for Docker Compose, 'host.docker.internal' for Docker Desktop local dev
+CHROMA_HOST = os.environ.get('CHROMA_HOST', 'chroma')
+CHROMA_PORT = int(os.environ.get('CHROMA_PORT', 8000))
+
+CHROMA_SETTINGS = chromadb.HttpClient(
+    host=CHROMA_HOST,
+    port=CHROMA_PORT,
+    settings=Settings(allow_reset=True, anonymized_telemetry=False)
+)

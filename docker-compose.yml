@@ -1,12 +1,14 @@
 version: '3.6'
 
 services:
-    ollama: 
+    ollama:
       image: ollama/ollama:latest
       volumes:
         - /ollama/models:/home/models
       environment:
         - OLLAMA_MODELS=/home/models
+      networks:
+        - net
       deploy:
         resources:
           reservations:
@@ -26,6 +28,8 @@ services:
     nvidia:
       image: nvidia/cuda:12.3.1-base-ubuntu20.04
       command: nvidia-smi
+      networks:
+        - net
       deploy:
         resources:
           reservations:
@@ -44,10 +48,14 @@ services:
         - nvidia
         - ollama
         - chroma
+      networks:
+        - net
       environment:
         - MODEL=llama3
         - EMBEDDINGS_MODEL_NAME=all-MiniLM-L6-v2
         - TARGET_SOURCE_CHUNKS=5
+        - CHROMA_HOST=chroma
+        - CHROMA_PORT=8000
 
 volumes:
   index_data:

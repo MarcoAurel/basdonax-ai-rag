@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: basdonax-ollama
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - basdonax-net
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  chroma:
+    image: chromadb/chroma:0.5.1.dev111
+    container_name: basdonax-chroma
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - basdonax-net
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ui:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: basdonax-ui
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+    depends_on:
+      ollama:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - basdonax-net
+    environment:
+      - MODEL=${MODEL:-phi3}
+      - EMBEDDINGS_MODEL_NAME=${EMBEDDINGS_MODEL_NAME:-all-MiniLM-L6-v2}
+      - TARGET_SOURCE_CHUNKS=${TARGET_SOURCE_CHUNKS:-5}
+      - OLLAMA_HOST=http://ollama:11434
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+
+volumes:
+  ollama_models:
+    driver: local
+  chroma_data:
+    driver: local
+
+networks:
+  basdonax-net:
+    driver: bridge
