@@ -1,0 +1,90 @@
+version: '3.8'
+
+# Configuración para desarrollo local con Docker Desktop
+# Este archivo está optimizado para Windows/Mac con Docker Desktop
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: basdonax-ollama-local
+    volumes:
+      - ollama_models_local:/root/.ollama
+    ports:
+      - "11434:11434"  # Expuesto para debugging
+    restart: unless-stopped
+    networks:
+      - basdonax-local-net
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  chroma:
+    image: chromadb/chroma:0.5.1.dev111
+    container_name: basdonax-chroma-local
+    volumes:
+      - chroma_data_local:/chroma/chroma
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - basdonax-local-net
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  ui:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: basdonax-ui-local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app  # Hot reload para desarrollo
+    depends_on:
+      ollama:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - basdonax-local-net
+    env_file:
+      - .env  # Cargar variables de entorno desde archivo .env
+    environment:
+      # Modo local (por defecto si .env no existe)
+      - MODEL=${MODEL:-llama3.2:1b}
+      - EMBEDDINGS_MODEL_NAME=${EMBEDDINGS_MODEL_NAME:-all-MiniLM-L6-v2}
+      - TARGET_SOURCE_CHUNKS=${TARGET_SOURCE_CHUNKS:-5}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+      - CHROMA_HOST=${CHROMA_HOST:-chroma}
+      - CHROMA_PORT=${CHROMA_PORT:-8000}
+      # APIs en la nube (se activan desde .env)
+      - USE_CLOUD_API=${USE_CLOUD_API:-false}
+      - CLOUD_PROVIDER=${CLOUD_PROVIDER:-groq}
+      - MODEL_NAME=${MODEL_NAME:-llama-3.1-70b-versatile}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama_models_local:
+    driver: local
+  chroma_data_local:
+    driver: local
+
+networks:
+  basdonax-local-net:
+    driver: bridge

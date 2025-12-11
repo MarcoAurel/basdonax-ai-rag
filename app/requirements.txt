@@ -25,3 +25,9 @@ pandoc==2.3
 pypandoc==1.11
 tqdm==4.66.1
 sentence_transformers
+
+# APIs en la nube (opcionales según configuración)
+langchain-groq>=0.1.0
+langchain-openai>=0.1.0
+langchain-anthropic>=0.1.0
+langchain-google-genai>=1.0.0

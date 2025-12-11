@@ -1,0 +1,131 @@
+PS D:\Proyectos\basdonax-ai-rag> docker cp debug_rag.py basdonax-ui-local:/app/
+Successfully copied 5.12kB to basdonax-ui-local:/app/
+PS D:\Proyectos\basdonax-ai-rag> docker exec basdonax-ui-local python /app/debug_rag.py
+Failed to send telemetry event client_start: capture() takes 1 positional argument but 3 were given
+/usr/local/lib/python3.11/site-packages/langchain_core/_api/deprecation.py:119: LangChainDeprecationWarning: The method `BaseRetriever.get_relevant_documents` was deprecated in langchain-core 0.1.46 and will be 
+removed in 0.3.0. Use invoke instead.
+  warn_deprecated(
+================================================================================
+🔍 DEBUG RAG - Flujo Completo
+================================================================================
+
+📝 Pregunta: ¿Cuál es el error específico que aparece al exportar a Excel desde Wigos GUI en Windows 11?
+
+📊 Paso 1: Inicializando embeddings...
+✅ Embeddings listos: all-MiniLM-L6-v2
+
+🗄️  Paso 2: Conectando a ChromaDB...
+✅ Conectado a ChromaDB
+
+🔎 Paso 3: Configurando retriever...
+✅ Retriever configurado para recuperar 5 chunks
+
+📚 Paso 4: Recuperando documentos relevantes...
+✅ Recuperados 5 documentos
+
+📄 Contenido de los documentos recuperados:
+
+--- Documento 1 ---
+Fuente: /tmp/Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11.docx
+Contenido:
+Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11
+
+Diagnóstico del problema
+
+Al intentar generar archivos Excel desde Wigos GUI en Windows 11, algunos usuarios experimentan el siguiente error:...
+
+--- Documento 2 ---
+Fuente: /tmp/Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11.docx
+Contenido:
+Este error indica un problema específico con el registro de componentes COM de Excel en ciertas instalaciones de Windows 11, no un problema de compatibilidad general entre Wigos GUI y Windows 11.
+
+Nota importante: Este problema es específico de ciertas configuraciones y no afecta a todas las instala...
+
+--- Documento 3 ---
+Fuente: /tmp/Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11.docx
+Contenido:
+Registre los componentes COM necesarios
+
+Inicie Wigos GUI con los permisos adecuados
+
+De esta forma, los usuarios finales no necesitan conocimientos técnicos
+
+Información de contacto para soporte técnico
+
+Si ninguna de estas soluciones funciona, contacte al equipo de soporte técnico con la siguiente...
+
+--- Documento 4 ---
+Fuente: /tmp/Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11.docx
+Contenido:
+Reinicie el equipo
+
+Pruebe nuevamente la generación de archivos Excel desde Wigos GUI
+
+SOLUCIÓN 2: Registrar componentes COM de Excel (OPTIMIZADA)
+
+Esta solución aborda directamente el problema de componentes COM no registrados correctamente.
+
+Requisitos previos:
+
+Acceso administrativo al sistema
+
+
+...
+
+--- Documento 5 ---
+Fuente: /tmp/Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11.docx
+Contenido:
+Pruebe la exportación a Excel
+
+Restaure el nivel de UAC a su configuración original si la prueba es exitosa
+
+Ejecutar Wigos GUI como administrador:
+
+Navegue a la ubicación del ejecutable de Wigos GUI
+
+Haga clic derecho y seleccione "Propiedades"
+
+Vaya a la pestaña "Compatibilidad"
+
+Marque "Ejecutar ...
+
+📝 Paso 5: Formateando contexto...
+✅ Contexto formateado (2161 caracteres)
+
+Primeros 500 caracteres del contexto:
+--------------------------------------------------------------------------------
+Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11
+
+Diagnóstico del problema
+
+Al intentar generar archivos Excel desde Wigos GUI en Windows 11, algunos usuarios experimentan el siguiente error:
+
+Este error indica un problema específico con el registro de componentes COM de Excel en ciertas instalaciones de Windows 11, no un problema de compatibilidad general entre Wigos GUI y Windows 11.
+
+Nota importante: Este problema es específico de ciertas configuraciones y no
+--------------------------------------------------------------------------------
+
+💬 Paso 6: Creando prompt...
+✅ Prompt creado
+
+Estructura del prompt:
+--------------------------------------------------------------------------------
+messages=[HumanMessage(content='human'), HumanMessage(content=' # Rol\n    Soy Au-Rex, el asistente virtual del departamento de TI de Luckia Arica, Chile. Soy especialista en consultar y comunicar información técnica de manuales, procedimientos, documentación y conocimientos del departamento de TI de la forma más clara, precisa y útil posible.\n\n# Tarea\nGenerar una respuesta concisa y explicativa para la consulta técnica que se me realizó, utilizando EXCLUSIVAMENTE la información disponible en el contexto provisto. Mi objetivo es proporcionar información técnica de manera clara, práctica y directa que permita al personal de TI y usuarios resolver consultas, entender procedimientos o acceder a la información necesaria de forma rápida y efectiva.\n\n# REGLAS CRÍTICAS (OBLIGATORIAS):\n\n1.
+...
+--------------------------------------------------------------------------------
+
+🤖 Paso 7: Enviando al LLM...
+⚠️  Esto puede tardar varios segundos...
+
+✅ Respuesta recibida del LLM:
+
+================================================================================
+Según la documentación proporcionada en la "Guía de solución para problemas de exportación Excel en Wigos GUI bajo Windows 11", específicamente en la sección "Diagnóstico del problema", el error específico que aparece al exportar a Excel desde Wigos GUI en Windows 11 se relaciona con un problema de registro de componentes COM de Excel en ciertas instalaciones de Windows 11. Sin embargo, no se proporciona el texto exacto del error en la documentación suministrada.
+
+Para abordar este problema, se recomiendan varias soluciones en el "Plan de acción recomendado", que incluyen registrar los componentes COM necesarios, iniciar Wigos GUI con permisos adecuados, y otras soluciones más avanzadas para entornos corporativos.
+
+No tengo información específica sobre el texto exacto del error en la documentación proporcionada. Te recomiendo revisar la sección "Diagnóstico del problema" en la guía para más detalles sobre el error y seguir las soluciones recomendadas para resolver el problema.
+================================================================================
+
+🏁 Debug completado
+PS D:\Proyectos\basdonax-ai-rag>
