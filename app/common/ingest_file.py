@@ -21,7 +21,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 from common.chroma_db_settings import Chroma
-from common.constants import CHROMA_SETTINGS
 
 
 # Load environment variables
@@ -30,9 +29,12 @@ embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME', 'all-MiniLM-L6-v
 # Create embeddings
 embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
 collection_name = 'vectordb'
-collection = CHROMA_SETTINGS.get_or_create_collection(name='vectordb')
 chunk_size = 500
 chunk_overlap = 50
+
+def get_collection(chroma_client):
+    """Obtiene la colección de ChromaDB de forma lazy"""
+    return chroma_client.get_or_create_collection(name='vectordb')
 
 # Custom document loaders
 class MyElmLoader(UnstructuredEmailLoader):
@@ -116,8 +118,8 @@ def get_unique_sources_df(chroma_settings):
 
 
 # Modificar process_file para recibir el archivo cargado y el nombre
-def process_file(uploaded_file, file_name):
-    files_in_vectordb = get_unique_sources_df(CHROMA_SETTINGS)['source'].tolist()
+def process_file(uploaded_file, file_name, chroma_client):
+    files_in_vectordb = get_unique_sources_df(chroma_client)['source'].tolist()
     if file_name in files_in_vectordb:
         return None
     else:
@@ -136,10 +138,10 @@ def does_vectorstore_exist(settings) -> bool:
     return collection
 
 
-def ingest_file(uploaded_file, file_name):
-    if does_vectorstore_exist(CHROMA_SETTINGS):
-        db = Chroma(embedding_function=embeddings, client=CHROMA_SETTINGS)
-        texts = process_file(uploaded_file, file_name)
+def ingest_file(uploaded_file, file_name, chroma_client):
+    if does_vectorstore_exist(chroma_client):
+        db = Chroma(embedding_function=embeddings, client=chroma_client)
+        texts = process_file(uploaded_file, file_name, chroma_client)
         if texts == None:
             st.warning('Este archivo ya fue agregado anteriormente.')
         else:
@@ -149,15 +151,16 @@ def ingest_file(uploaded_file, file_name):
     else:
         # Create and store locally vectorstore
         st.success("Creating new vectorstore")
-        texts = process_file(uploaded_file, file_name)
+        texts = process_file(uploaded_file, file_name, chroma_client)
         st.spinner(f"Creating embeddings. May take some minutes...")
-        db = Chroma.from_documents(texts, embeddings, client=CHROMA_SETTINGS)
+        db = Chroma.from_documents(texts, embeddings, client=chroma_client)
         st.success(f"Se agrego el archivo con éxito.")
 
 
-def delete_file_from_vectordb(filename:str):
+def delete_file_from_vectordb(filename:str, chroma_client):
     new_filename = '/tmp/' + filename
     try:
+        collection = get_collection(chroma_client)
         collection.delete(where={"source": new_filename})
         print(f'Se eliminó el archivo: {filename} con éxito')
     except:

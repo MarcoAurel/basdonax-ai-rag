@@ -20,10 +20,14 @@ model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_
 embeddings_model_name = os.environ.get("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
 target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',5))
 
-from common.constants import CHROMA_SETTINGS
+from common.constants import get_chroma_client
 
 
 def parse_arguments():
+    """
+    Parse argumentos de línea de comandos.
+    En Streamlit, usa valores por defecto si no hay args disponibles.
+    """
     parser = argparse.ArgumentParser(description='privateGPT: Ask questions to your documents without an internet connection, '
                                                  'using the power of LLMs.')
     parser.add_argument("--hide-source", "-S", action='store_true',
@@ -33,7 +37,14 @@ def parse_arguments():
                         action='store_true',
                         help='Use this flag to disable the streaming StdOut callback for LLMs.')
 
-    return parser.parse_args()
+    try:
+        return parser.parse_args()
+    except SystemExit:
+        # En Streamlit, parse_args() puede fallar, usar valores por defecto
+        class DefaultArgs:
+            hide_source = False
+            mute_stream = True  # Mute por defecto en Streamlit
+        return DefaultArgs()
 
 
 def get_llm(callbacks):
@@ -100,23 +111,43 @@ def get_llm(callbacks):
 def response(query:str) -> str:
     # Parse the command line arguments
     args = parse_arguments()
-    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
 
-    db = Chroma(client=CHROMA_SETTINGS, embedding_function=embeddings)
-
-    retriever = db.as_retriever(search_kwargs={"k": target_source_chunks})
     # activate/deactivate the streaming StdOut callback for LLMs
     callbacks = [] if args.mute_stream else [StreamingStdOutCallbackHandler()]
 
     # Obtener el LLM según configuración
     llm = get_llm(callbacks)
 
-    prompt = assistant_prompt()
+    # Intentar conectar a ChromaDB
+    chroma_client = get_chroma_client()
 
+    if chroma_client is None:
+        # Si ChromaDB no está disponible, responder sin contexto RAG
+        from langchain_core.prompts import ChatPromptTemplate
+
+        simple_prompt = ChatPromptTemplate.from_messages([
+            ("system", """Soy Au-Rex, el asistente virtual del departamento de TI de Luckia Arica, Chile.
+
+IMPORTANTE: Actualmente no tengo acceso a la base de documentos RAG.
+Solo puedo proporcionar información general basada en mi conocimiento.
+
+Para consultas específicas sobre documentación interna, procedimientos o manuales del departamento,
+necesitarás que el administrador configure la conexión a ChromaDB."""),
+            ("human", "{question}")
+        ])
+
+        chain = simple_prompt | llm | StrOutputParser()
+        return chain.invoke({"question": query})
+
+    # Si ChromaDB está disponible, usar RAG completo
+    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
+    db = Chroma(client=chroma_client, embedding_function=embeddings)
+    retriever = db.as_retriever(search_kwargs={"k": target_source_chunks})
+
+    prompt = assistant_prompt()
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
-
 
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
