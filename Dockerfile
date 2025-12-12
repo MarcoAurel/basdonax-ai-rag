@@ -2,6 +2,9 @@
 # Este archivo está en la raíz del proyecto
 FROM python:3.11
 
+# Instalar curl para healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Establecer el directorio de trabajo
 WORKDIR /app
 
@@ -30,5 +33,9 @@ COPY app/ /app/
 # Exponer el puerto
 EXPOSE 8080
 
+# Healthcheck para verificar que Streamlit está respondiendo
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/_stcore/health || exit 1
+
 # Comando para iniciar la aplicación
-CMD ["streamlit", "run", "Inicio.py", "--server.port", "8080", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run", "Inicio.py", "--server.port", "8080", "--server.address", "0.0.0.0", "--server.headless", "true"]
