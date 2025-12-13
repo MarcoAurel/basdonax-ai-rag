@@ -16,7 +16,7 @@ services:
       retries: 3
 
   chroma:
-    image: chromadb/chroma:0.5.0
+    image: chromadb/chroma:0.5.1.dev111
     container_name: basdonax-chroma
     volumes:
       - chroma_data:/chroma/chroma
