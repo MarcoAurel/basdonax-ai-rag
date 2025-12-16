@@ -9,11 +9,22 @@ services:
     restart: unless-stopped
     networks:
       - basdonax-net
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
     healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 30s
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 15s
       timeout: 10s
-      retries: 3
+      start_period: 60s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
 
   chroma:
     image: chromadb/chroma:0.5.1.dev111
@@ -28,21 +39,28 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 15s
       timeout: 10s
-      retries: 3
+      start_period: 30s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
 
   ui:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
     container_name: basdonax-ui
     ports:
       - "8080:8080"
-    volumes:
-      - ./app:/app
     depends_on:
       ollama:
         condition: service_healthy
@@ -58,6 +76,20 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - CHROMA_HOST=chroma
       - CHROMA_PORT=8000
+      - USE_CLOUD_API=${USE_CLOUD_API:-false}
+      - CLOUD_PROVIDER=${CLOUD_PROVIDER:-groq}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
 
 volumes:
   ollama_models:

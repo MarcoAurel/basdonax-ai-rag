@@ -1,9 +1,15 @@
 # Dockerfile para despliegue en Easypanel
 # Este archivo está en la raíz del proyecto
-FROM python:3.11
+FROM python:3.11-slim
 
-# Instalar curl para healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Instalar curl, wget y netcat para healthcheck y diagnóstico
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    netcat-traditional \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
 # Establecer el directorio de trabajo
 WORKDIR /app
@@ -30,12 +36,30 @@ RUN python -c "import nltk; \
 # Copiar el código de la aplicación
 COPY app/ /app/
 
+# Crear script de healthcheck robusto
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Verificar que Streamlit está respondiendo\n\
+echo "Verificando Streamlit..."\n\
+curl -f -s --max-time 5 http://localhost:8080/_stcore/health > /dev/null || exit 1\n\
+\n\
+# Verificar que el proceso de Streamlit está corriendo\n\
+if ! pgrep -f "streamlit run" > /dev/null; then\n\
+    echo "ERROR: Proceso Streamlit no encontrado"\n\
+    exit 1\n\
+fi\n\
+\n\
+echo "Healthcheck OK"\n\
+exit 0\n\
+' > /healthcheck.sh && chmod +x /healthcheck.sh
+
 # Exponer el puerto
 EXPOSE 8080
 
-# Healthcheck para verificar que Streamlit está respondiendo
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/_stcore/health || exit 1
+# Healthcheck robusto con período de inicio más largo
+HEALTHCHECK --interval=15s --timeout=10s --start-period=120s --retries=5 \
+    CMD /healthcheck.sh
 
 # Comando para iniciar la aplicación
 CMD ["streamlit", "run", "Inicio.py", "--server.port", "8080", "--server.address", "0.0.0.0", "--server.headless", "true"]

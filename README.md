@@ -84,3 +84,70 @@ docker-compose up -d
 Ahora mientras que tengamos el Docker/Docker Desktop prendido y mientras que ejecutemos este archivo vamos a poder acceder al RAG en este link: http://localhost:8080
 
 Próximo paso: disfrutar
+
+---
+
+## Documentación Actualizada (v2.0)
+
+Este proyecto ahora incluye documentación completa para despliegue en producción y healthchecks robustos:
+
+### Guías de Inicio Rápido
+
+- **[Inicio Rápido](README-QUICKSTART.md)** - Guía rápida para levantar el proyecto local o en Easypanel
+- **[Variables de Entorno](.env.example)** - Todas las variables de configuración disponibles
+
+### Despliegue en Producción
+
+- **[Resumen de Despliegue](DEPLOYMENT-SUMMARY.md)** - Resumen ejecutivo de la solución multi-servicio
+- **[Guía Completa Easypanel](EASYPANEL-DEPLOYMENT.md)** - Documentación detallada para desplegar en Easypanel
+- **[Checklist de Despliegue](EASYPANEL-CHECKLIST.md)** - Checklist paso a paso para verificar el despliegue
+
+### Herramientas de Diagnóstico
+
+- **[Script de Healthcheck](healthcheck-test.sh)** - Script para verificar estado de todos los servicios
+
+### Mejoras en v2.0
+
+- ✅ Healthchecks robustos para todos los servicios (Ollama, ChromaDB, UI)
+- ✅ Configuración multi-servicio para Easypanel
+- ✅ Soporte para APIs en la nube (Groq, OpenAI, Anthropic, Google)
+- ✅ Scripts de verificación y diagnóstico
+- ✅ Gestión de recursos optimizada
+- ✅ Documentación completa de troubleshooting
+
+### Arquitectura
+
+El proyecto ahora está optimizado para correr 3 servicios:
+
+| Servicio | Puerto | Descripción |
+|----------|--------|-------------|
+| **UI (Streamlit)** | 8080 | Interfaz de usuario web |
+| **Ollama** | 11434 | Servidor de modelos LLM |
+| **ChromaDB** | 8000 | Base de datos vectorial para RAG |
+
+### Inicio Rápido con Docker Compose
+
+```bash
+# Clonar el repositorio
+git clone <tu-repositorio>
+cd basdonax-ai-rag
+
+# Copiar variables de entorno
+cp .env.example .env
+
+# Iniciar todos los servicios
+docker-compose -f docker-compose.prod.yml up -d
+
+# Descargar modelo
+docker-compose -f docker-compose.prod.yml exec ollama ollama pull phi3
+
+# Verificar estado
+./healthcheck-test.sh
+
+# Acceder a la aplicación
+# http://localhost:8080
+```
+
+### Soporte
+
+Para problemas o preguntas, consulta la [documentación de troubleshooting](EASYPANEL-DEPLOYMENT.md#troubleshooting) o ejecuta el script de healthcheck para diagnóstico.
