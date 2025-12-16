@@ -18,8 +18,8 @@ model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_
 # https://www.sbert.net/docs/pretrained_models.html
 # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."
 embeddings_model_name = os.environ.get("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
-# OPTIMIZACIÓN: Aumentar chunks para mejor cobertura RAG
-target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',10))
+# OPTIMIZACIÓN: Balance entre cobertura y concisión
+target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS', 6))
 
 from common.constants import get_chroma_client
 
@@ -143,7 +143,16 @@ necesitarás que el administrador configure la conexión a ChromaDB."""),
     # Si ChromaDB está disponible, usar RAG completo
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
     db = Chroma(client=chroma_client, embedding_function=embeddings)
-    retriever = db.as_retriever(search_kwargs={"k": target_source_chunks})
+    # Usar MMR para obtener chunks relevantes pero diversos
+    # fetch_k busca entre más documentos, k devuelve los más diversos
+    retriever = db.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": target_source_chunks,
+            "fetch_k": target_source_chunks * 3,  # Buscar entre 3x más documentos
+            "lambda_mult": 0.7  # Balance entre relevancia (1.0) y diversidad (0.0)
+        }
+    )
 
     prompt = assistant_prompt()
 
