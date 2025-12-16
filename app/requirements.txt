@@ -1,32 +1,35 @@
+# Core dependencies
 openai
 streamlit
-python-dotenv
+python-dotenv==1.0.0
 numexpr
 langchainhub
 db-dtypes
-langchain
-pydantic==1.10.13
 pymysql
 pandas
 docx
 python-docx
+
+# LangChain core
 langchain==0.1.16
 langchain-community==0.0.34
-gpt4all==1.0.8
-chromadb==0.4.7
-llama-cpp-python==0.1.81
+pydantic==1.10.13
+
+# Vector database (sin compilación)
+chromadb==0.4.24
+sentence_transformers
+
+# Document processing
 urllib3==2.0.4
 PyMuPDF==1.23.5
-python-dotenv==1.0.0
 unstructured==0.10.8
 extract-msg==0.45.0
 tabulate==0.9.0
 pandoc==2.3
 pypandoc==1.11
 tqdm==4.66.1
-sentence_transformers
 
-# APIs en la nube (opcionales según configuración)
+# Cloud APIs
 langchain-groq>=0.1.0
 langchain-openai>=0.1.0
 langchain-anthropic>=0.1.0
