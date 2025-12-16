@@ -18,7 +18,8 @@ model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_
 # https://www.sbert.net/docs/pretrained_models.html
 # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."
 embeddings_model_name = os.environ.get("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
-target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',5))
+# OPTIMIZACIÓN: Aumentar chunks para mejor cobertura RAG
+target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',10))
 
 from common.constants import get_chroma_client
 

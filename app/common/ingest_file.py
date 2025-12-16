@@ -23,14 +23,16 @@ from langchain.docstore.document import Document
 from common.chroma_db_settings import Chroma
 
 
-# Load environment variables
+# Load environment variables
 source_directory = os.environ.get('SOURCE_DIRECTORY', 'documents')
 embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME', 'all-MiniLM-L6-v2')
 # Create embeddings
 embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
 collection_name = 'vectordb'
-chunk_size = 500
-chunk_overlap = 50
+
+# OPTIMIZACIÓN: Chunks más grandes para mejor contexto
+chunk_size = 1000  # Aumentado de 500 a 1000
+chunk_overlap = 100  # Aumentado de 50 a 100
 
 def get_collection(chroma_client):
     """Obtiene la colección de ChromaDB de forma lazy"""
@@ -127,6 +129,12 @@ def process_file(uploaded_file, file_name, chroma_client):
         documents = load_single_document(uploaded_file)
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         texts = text_splitter.split_documents(documents)
+        
+        # DEBUG: Log del procesamiento
+        print(f"📄 Procesando: {file_name}")
+        print(f"   Documentos originales: {len(documents)}")
+        print(f"   Chunks generados: {len(texts)}")
+        
         return texts
 
 
@@ -145,16 +153,16 @@ def ingest_file(uploaded_file, file_name, chroma_client):
         if texts == None:
             st.warning('Este archivo ya fue agregado anteriormente.')
         else:
-            st.spinner(f"Creando embeddings.")
+            st.spinner(f"Creando embeddings para {len(texts)} chunks...")
             db.add_documents(texts)
-            st.success(f"Se agrego el archivo con éxito.")
+            st.success(f"✅ Se agregó el archivo con éxito ({len(texts)} chunks indexados)")
     else:
         # Create and store locally vectorstore
         st.success("Creating new vectorstore")
         texts = process_file(uploaded_file, file_name, chroma_client)
         st.spinner(f"Creating embeddings. May take some minutes...")
         db = Chroma.from_documents(texts, embeddings, client=chroma_client)
-        st.success(f"Se agrego el archivo con éxito.")
+        st.success(f"✅ Se agregó el archivo con éxito ({len(texts)} chunks indexados)")
 
 
 def delete_file_from_vectordb(filename:str, chroma_client):
@@ -162,6 +170,6 @@ def delete_file_from_vectordb(filename:str, chroma_client):
     try:
         collection = get_collection(chroma_client)
         collection.delete(where={"source": new_filename})
-        print(f'Se eliminó el archivo: {filename} con éxito')
-    except:
-        print(f'Ocurrió un error al eliminar el archivo {filename}')
+        print(f'✅ Se eliminó el archivo: {filename} con éxito')
+    except Exception as e:
+        print(f'❌ Ocurrió un error al eliminar el archivo {filename}: {e}')
