@@ -18,8 +18,8 @@ model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_
 # https://www.sbert.net/docs/pretrained_models.html
 # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."
 embeddings_model_name = os.environ.get("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
-# OPTIMIZACIÓN: Balance entre cobertura y concisión
-target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS', 6))
+# OPTIMIZACIÓN: Menos chunks = respuestas más concisas
+target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS', 4))
 
 from common.constants import get_chroma_client
 
@@ -62,6 +62,7 @@ def get_llm(callbacks):
                 model=model,
                 groq_api_key=api_key,
                 temperature=0,
+                max_tokens=300,  # Limitar respuestas a ~200 palabras
                 callbacks=callbacks
             )
 
@@ -149,8 +150,8 @@ necesitarás que el administrador configure la conexión a ChromaDB."""),
         search_type="mmr",
         search_kwargs={
             "k": target_source_chunks,
-            "fetch_k": target_source_chunks * 3,  # Buscar entre 3x más documentos
-            "lambda_mult": 0.7  # Balance entre relevancia (1.0) y diversidad (0.0)
+            "fetch_k": target_source_chunks * 4,  # Buscar entre 4x más documentos
+            "lambda_mult": 0.5  # Balance 50/50 relevancia y diversidad
         }
     )
 
