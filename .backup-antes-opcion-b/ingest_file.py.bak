@@ -26,16 +26,17 @@ from common.chroma_db_settings import Chroma
 # Load environment variables
 source_directory = os.environ.get('SOURCE_DIRECTORY', 'documents')
 embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME', 'all-MiniLM-L6-v2')
-chunk_size = int(os.environ.get('CHUNK_SIZE', 1000))
-chunk_overlap = int(os.environ.get('CHUNK_OVERLAP', 100))
-collection_name = os.environ.get('COLLECTION_NAME', 'vectordb')
-
 # Create embeddings
 embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
+collection_name = 'vectordb'
+
+# OPTIMIZACIÓN: Chunks más grandes para mejor contexto
+chunk_size = 1000  # Aumentado de 500 a 1000
+chunk_overlap = 100  # Aumentado de 50 a 100
 
 def get_collection(chroma_client):
     """Obtiene la colección de ChromaDB de forma lazy"""
-    return chroma_client.get_or_create_collection(name=collection_name)
+    return chroma_client.get_or_create_collection(name='vectordb')
 
 # Custom document loaders
 class MyElmLoader(UnstructuredEmailLoader):
@@ -103,7 +104,7 @@ def load_single_document(uploaded_file) -> List[Document]:
 
 
 def get_unique_sources_df(chroma_settings):
-    df = pd.DataFrame(chroma_settings.get_collection(collection_name).get(include=['embeddings', 'documents', 'metadatas']))
+    df = pd.DataFrame(chroma_settings.get_collection('vectordb').get(include=['embeddings', 'documents', 'metadatas']))
     
     # Suponiendo que 'df' es tu DataFrame original
     sources = df['metadatas'].apply(lambda x: x.get('source', None)).dropna().unique()
@@ -133,7 +134,6 @@ def process_file(uploaded_file, file_name, chroma_client):
         print(f"📄 Procesando: {file_name}")
         print(f"   Documentos originales: {len(documents)}")
         print(f"   Chunks generados: {len(texts)}")
-        print(f"   Chunk size: {chunk_size}, Overlap: {chunk_overlap}")
         
         return texts
 

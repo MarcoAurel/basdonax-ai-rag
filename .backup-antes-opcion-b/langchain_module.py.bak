@@ -14,36 +14,18 @@ use_cloud_api = os.environ.get("USE_CLOUD_API", "false").lower() == "true"
 cloud_provider = os.environ.get("CLOUD_PROVIDER", "groq")
 model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_NAME", "llama-3.1-8b-instant")
 
-# Configuración de parámetros de generación
-max_tokens = int(os.environ.get("MAX_TOKENS", 500))
-temperature = float(os.environ.get("TEMPERATURE", 0))
-
-# Configuración de RAG
-search_type = os.environ.get("SEARCH_TYPE", "mmr")
-mmr_fetch_k_multiplier = int(os.environ.get("MMR_FETCH_K_MULTIPLIER", 4))
-mmr_lambda_mult = float(os.environ.get("MMR_LAMBDA_MULT", 0.5))
-
-# Configuración de Ollama
-ollama_host = os.environ.get("OLLAMA_HOST", "http://ollama:11434")
-
 # LOG: Mostrar configuración del modelo
-print(f"🤖 CONFIGURACIÓN DEL MODELO:")
+print(f"🤖 MODELO CONFIGURADO:")
 print(f"   USE_CLOUD_API: {use_cloud_api}")
 print(f"   CLOUD_PROVIDER: {cloud_provider}")
 print(f"   MODEL: {model}")
-print(f"   MAX_TOKENS: {max_tokens}")
-print(f"   TEMPERATURE: {temperature}")
-print(f"   SEARCH_TYPE: {search_type}")
-print(f"   MMR_FETCH_K_MULTIPLIER: {mmr_fetch_k_multiplier}")
-print(f"   MMR_LAMBDA_MULT: {mmr_lambda_mult}")
-if not use_cloud_api:
-    print(f"   OLLAMA_HOST: {ollama_host}")
 print(f"   ---")
 
 # For embeddings model, the example uses a sentence-transformers model
 # https://www.sbert.net/docs/pretrained_models.html
 # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."
 embeddings_model_name = os.environ.get("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
+# OPTIMIZACIÓN: Menos chunks = respuestas más concisas
 target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS', 4))
 
 from common.constants import get_chroma_client
@@ -86,8 +68,8 @@ def get_llm(callbacks):
             return ChatGroq(
                 model=model,
                 groq_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=0,
+                max_tokens=500,  # Aumentado: ~350 palabras
                 callbacks=callbacks
             )
 
@@ -99,8 +81,7 @@ def get_llm(callbacks):
             return ChatOpenAI(
                 model=model,
                 openai_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=0,
                 callbacks=callbacks
             )
 
@@ -112,8 +93,7 @@ def get_llm(callbacks):
             return ChatAnthropic(
                 model=model,
                 anthropic_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=0,
                 callbacks=callbacks
             )
 
@@ -125,8 +105,7 @@ def get_llm(callbacks):
             return ChatGoogleGenerativeAI(
                 model=model,
                 google_api_key=api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=0,
                 callbacks=callbacks,
                 transport="rest"  # Usar REST en lugar de gRPC para evitar problemas con event loop
             )
@@ -135,12 +114,7 @@ def get_llm(callbacks):
             raise ValueError(f"Proveedor no soportado: {cloud_provider}")
     else:
         # Usar Ollama local
-        return Ollama(
-            model=model, 
-            callbacks=callbacks, 
-            temperature=temperature, 
-            base_url=ollama_host
-        )
+        return Ollama(model=model, callbacks=callbacks, temperature=0, base_url='http://ollama:11434')
 
 
 def response(query:str) -> str:
@@ -177,24 +151,16 @@ necesitarás que el administrador configure la conexión a ChromaDB."""),
     # Si ChromaDB está disponible, usar RAG completo
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
     db = Chroma(client=chroma_client, embedding_function=embeddings)
-    
-    # Configurar retriever según estrategia
-    if search_type == "mmr":
-        # Usar MMR para obtener chunks relevantes pero diversos
-        retriever = db.as_retriever(
-            search_type="mmr",
-            search_kwargs={
-                "k": target_source_chunks,
-                "fetch_k": target_source_chunks * mmr_fetch_k_multiplier,
-                "lambda_mult": mmr_lambda_mult
-            }
-        )
-    else:
-        # Usar búsqueda por similitud simple
-        retriever = db.as_retriever(
-            search_type="similarity",
-            search_kwargs={"k": target_source_chunks}
-        )
+    # Usar MMR para obtener chunks relevantes pero diversos
+    # fetch_k busca entre más documentos, k devuelve los más diversos
+    retriever = db.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": target_source_chunks,
+            "fetch_k": target_source_chunks * 4,  # Buscar entre 4x más documentos
+            "lambda_mult": 0.5  # Balance 50/50 relevancia y diversidad
+        }
+    )
 
     prompt = assistant_prompt()
 
