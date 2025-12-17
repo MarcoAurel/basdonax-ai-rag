@@ -14,6 +14,13 @@ use_cloud_api = os.environ.get("USE_CLOUD_API", "false").lower() == "true"
 cloud_provider = os.environ.get("CLOUD_PROVIDER", "groq")
 model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_NAME", "llama-3.1-70b-versatile")
 
+# LOG: Mostrar configuración del modelo
+print(f"🤖 MODELO CONFIGURADO:")
+print(f"   USE_CLOUD_API: {use_cloud_api}")
+print(f"   CLOUD_PROVIDER: {cloud_provider}")
+print(f"   MODEL: {model}")
+print(f"   ---")
+
 # For embeddings model, the example uses a sentence-transformers model
 # https://www.sbert.net/docs/pretrained_models.html
 # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."

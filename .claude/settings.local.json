@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nImplementar lazy loading de ChromaDB para permitir inicio sin ChromaDB\n\nCambios para permitir que la aplicación inicie correctamente cuando \nChromaDB no está disponible (ej: despliegue standalone en Easypanel):\n\n- constants.py: Cambiar conexión inmediata por get_chroma_client() lazy\n- langchain_module.py: \n  * Arreglar parse_arguments() para compatibilidad con Streamlit\n  * Manejar caso sin ChromaDB (responder sin contexto RAG)\n  * Usar get_chroma_client() en lugar de CHROMA_SETTINGS global\n- Archivos.py:\n  * Verificar disponibilidad de ChromaDB antes de cargar página\n  * Mostrar mensaje informativo si ChromaDB no está disponible\n  * Pasar cliente como parámetro a funciones\n- ingest_file.py:\n  * Eliminar uso global de CHROMA_SETTINGS\n  * Modificar funciones para recibir chroma_client como parámetro\n\nEsto permite que la aplicación UI inicie correctamente en Easypanel\nincluso sin ChromaDB, usando solo APIs cloud para respuestas.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nImplementar lazy loading de ChromaDB para permitir inicio sin ChromaDB\n\nCambios para permitir que la aplicación inicie correctamente cuando \nChromaDB no está disponible (ej: despliegue standalone en Easypanel):\n\n- constants.py: Cambiar conexión inmediata por get_chroma_client() lazy\n- langchain_module.py: \n  * Arreglar parse_arguments() para compatibilidad con Streamlit\n  * Manejar caso sin ChromaDB (responder sin contexto RAG)\n  * Usar get_chroma_client() en lugar de CHROMA_SETTINGS global\n- Archivos.py:\n  * Verificar disponibilidad de ChromaDB antes de cargar página\n  * Mostrar mensaje informativo si ChromaDB no está disponible\n  * Pasar cliente como parámetro a funciones\n- ingest_file.py:\n  * Eliminar uso global de CHROMA_SETTINGS\n  * Modificar funciones para recibir chroma_client como parámetro\n\nEsto permite que la aplicación UI inicie correctamente en Easypanel\nincluso sin ChromaDB, usando solo APIs cloud para respuestas.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(grep:*)",
+      "Bash(git mv:*)",
+      "Bash(ls:*)",
+      "Bash(docker-compose:*)"
     ],
     "deny": [],
     "ask": []

@@ -66,22 +66,41 @@ Una vez hecho todo lo anterior solo queda un paso: que entremos al siguiente lin
 
 ## ¿Como ejecutarlo posteriormente instalado y una vez lo cerremos?
 
-Tenemos que dejarnos en el escritorio el archivo de `open_rag.bat` si estamos en Windows y si estamos en Mac/Linux el `open_rag.sh`
+Ahora puedes usar los scripts modernos incluidos en el proyecto:
 
-Ahora tenemos que abrirlo y modificarlo, tenemos que agregar la ruta donde hicimos/tenemos el `docker-compose.yml`, por ejemplo mi ruta es:
+### Windows
+```powershell
+# Iniciar servicios
+.\start-local.ps1
 
+# Ver logs
+.\start-local.ps1 logs
+
+# Detener servicios
+.\start-local.ps1 stop
 ```
-C:\Users\fcore\OneDrive\Desktop\Basdonax\basdonax-rag>
+
+### Mac/Linux
+```bash
+# Iniciar servicios
+./start-local.sh
+
+# Ver logs
+./start-local.sh logs
+
+# Detener servicios
+./start-local.sh stop
 ```
 
-Entonces en mi caso va a ser así el `open_rag.bat` (el .sh es lo mismo):
+Estos scripts automáticamente:
+- ✅ Verifican que Docker está corriendo
+- ✅ Inician todos los servicios necesarios
+- ✅ Muestran el estado de los contenedores
+- ✅ Proporcionan comandos útiles
 
-```
-cd C:\Users\fcore\OneDrive\Desktop\Basdonax\basdonax-rag
-docker-compose up -d
-```
+Una vez iniciados los servicios, accede a: http://localhost:8080
 
-Ahora mientras que tengamos el Docker/Docker Desktop prendido y mientras que ejecutemos este archivo vamos a poder acceder al RAG en este link: http://localhost:8080
+**Nota:** Los scripts antiguos `open_rag.bat` y `open_rag.sh` han sido movidos a la carpeta `unused/` ya que apuntaban a rutas hardcoded. Los nuevos scripts son más flexibles y funcionan desde cualquier ubicación.
 
 Próximo paso: disfrutar
 
