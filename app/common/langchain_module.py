@@ -12,7 +12,7 @@ import argparse
 # Configuración del modelo
 use_cloud_api = os.environ.get("USE_CLOUD_API", "false").lower() == "true"
 cloud_provider = os.environ.get("CLOUD_PROVIDER", "groq")
-model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_NAME", "llama-3.1-70b-versatile")
+model = os.environ.get("MODEL") if not use_cloud_api else os.environ.get("MODEL_NAME", "llama-3.1-8b-instant")
 
 # LOG: Mostrar configuración del modelo
 print(f"🤖 MODELO CONFIGURADO:")
@@ -69,7 +69,7 @@ def get_llm(callbacks):
                 model=model,
                 groq_api_key=api_key,
                 temperature=0,
-                max_tokens=300,  # Limitar respuestas a ~200 palabras
+                max_tokens=500,  # Aumentado: ~350 palabras
                 callbacks=callbacks
             )
 
